@@ -15,15 +15,7 @@ app.get("/", (req, res) => {
 });
 
 app.post("/api/addPerson/", (req, res) => {
-  const personSchema = {
-    name: Joi.string()
-      .min(1)
-      .required(),
-    age: Joi.number()
-      .min(1)
-      .required()
-  };
-  const { error } = Joi.validate(req.body, personSchema);
+  const { error } = validateSchema(req.body);
   if (error) return res.status(400).send(error.details[0].message);
   const newPerson = {
     id: people.length + 1,
@@ -41,6 +33,33 @@ app.get("/api/findPerson/:id", (req, res) => {
   if (matchingPerson) return res.send(matchingPerson);
   else return res.status(404).send("Yoinks, that user doesn't seem to exist!");
 });
+
+app.put("/api/updatePerson/:id", (req, res) => {
+  const { error } = validateSchema(req.body);
+  if (error) return res.status(400).send(error.details[0].message);
+  const matchingPerson = people.find(person => {
+    return person.id === parseInt(req.params.id);
+  });
+  if (!matchingPerson)
+    return res.status(404).send("Hm, nobody seems to match with that id.");
+  matchingPerson.name = req.body.name;
+  matchingPerson.age = req.body.age;
+  res.send(matchingPerson);
+});
+
+function validateSchema(person) {
+  const personSchema = {
+    name: Joi.string()
+      .min(1)
+      .required(),
+    age: Joi.number()
+      .integer()
+      .min(0)
+      .max(110)
+      .required()
+  };
+  return Joi.validate(person, personSchema);
+}
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, console.log(`Successfully connected to port ${PORT}...`));
