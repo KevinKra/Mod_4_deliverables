@@ -14,7 +14,7 @@ app.get("/", (req, res) => {
   res.send(people);
 });
 
-app.post("/api/addperson/", (req, res) => {
+app.post("/api/addPerson/", (req, res) => {
   const personSchema = {
     name: Joi.string()
       .min(1)
@@ -31,10 +31,16 @@ app.post("/api/addperson/", (req, res) => {
     age: req.body.age
   };
   people.push(newPerson);
-  res.send(people);
+  res.send(newPerson);
 });
 
-app.get("/api/findUser:id", (req, res) => {});
+app.get("/api/findPerson/:id", (req, res) => {
+  const matchingPerson = people.find(person => {
+    return person.id === parseInt(req.params.id);
+  });
+  if (matchingPerson) return res.send(matchingPerson);
+  else return res.status(404).send("Yoinks, that user doesn't seem to exist!");
+});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, console.log(`Successfully connected to port ${PORT}...`));
