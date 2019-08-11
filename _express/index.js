@@ -27,9 +27,7 @@ app.post("/api/addPerson/", (req, res) => {
 });
 
 app.get("/api/findPerson/:id", (req, res) => {
-  const matchingPerson = people.find(person => {
-    return person.id === parseInt(req.params.id);
-  });
+  const matchingPerson = findMatch(req.params.id);
   if (matchingPerson) return res.send(matchingPerson);
   else return res.status(404).send("Yoinks, that user doesn't seem to exist!");
 });
@@ -37,14 +35,21 @@ app.get("/api/findPerson/:id", (req, res) => {
 app.put("/api/updatePerson/:id", (req, res) => {
   const { error } = validateSchema(req.body);
   if (error) return res.status(400).send(error.details[0].message);
-  const matchingPerson = people.find(person => {
-    return person.id === parseInt(req.params.id);
-  });
+  const matchingPerson = findMatch(req.params.id);
   if (!matchingPerson)
     return res.status(404).send("Hm, nobody seems to match with that id.");
   matchingPerson.name = req.body.name;
   matchingPerson.age = req.body.age;
   res.send(matchingPerson);
+});
+
+app.get("/api/deletePerson/:id", (req, res) => {
+  const matchingPerson = findMatch(req.params.id);
+  if (!matchingPerson)
+    return res.status(404).send("Sorry, there is nobody with that id. 😢");
+  const index = people.indexOf(matchingPerson);
+  people.splice(index, 1);
+  res.send(people);
 });
 
 function validateSchema(person) {
@@ -59,6 +64,12 @@ function validateSchema(person) {
       .required()
   };
   return Joi.validate(person, personSchema);
+}
+
+function findMatch(query) {
+  return people.find(person => {
+    return person.id === parseInt(query);
+  });
 }
 
 const PORT = process.env.PORT || 3000;
